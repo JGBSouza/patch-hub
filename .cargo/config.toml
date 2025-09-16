@@ -1,3 +1,0 @@
-# Alias for `cargo clippy`
-[alias]
-lint = "clippy --all-targets --all-features"

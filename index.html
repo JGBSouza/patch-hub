@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório de Proposta – MAC0214</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Relatório de Proposta – Disciplina MAC0214</h1>
+  <p><strong>Autor:</strong> João Souza (NUSP: 12543850) &lt;joaosouzaaa12@usp.br&gt;</p>
+  <p><strong>Orientador:</strong> Prof. Dr. Paulo Roberto Miranda Meirelles &lt;paulormm@ime.usp.br&gt;</p>
+  <p><strong>Período:</strong> 15 de setembro – 30 de novembro de 2025</p>
+
+  <h2>Introdução</h2>
+  <p>
+    Este relatório descreve as atividades planejadas para a disciplina MAC0214, relacionadas à contribuição em um projeto de software livre, 
+    o <a href="https://github.com/kworkflow/patch-hub" target="_blank">patch-hub</a>, cujo objetivo é fornecer uma <em>interface em modo texto (TUI)</em> 
+    para visualização e manipulação de patches enviados ao kernel Linux.
+  </p>
+  <p>
+    O foco principal do trabalho é ajudar a estabilizar o <em>patch-hub</em> como software livre, destacando a importância de processos bem descritos 
+    (melhoria da documentação e comentários em códigos) e maior segurança de código para atrair e manter novos contribuidores.
+  </p>
+
+  <h2>Escopo das Contribuições</h2>
+
+  <h3>Melhorias de documentação e processos</h3>
+  <ul>
+    <li><a href="https://github.com/kworkflow/patch-hub/issues/151" target="_blank">#151 – Add excerpt CONTRIBUTING.md about rewriting branches for PRs</a></li>
+    <li><a href="https://github.com/kworkflow/patch-hub/issues/136" target="_blank">#136 – Fix table of contents of CONTRIBUTING.md</a></li>
+    <li><a href="https://github.com/kworkflow/patch-hub/issues/133" target="_blank">#133 – Add small excerpt about scope and breaking changes of Conventional Commits to CONTRIBUTING.md</a></li>
+    <li><a href="https://github.com/kworkflow/patch-hub/issues/117" target="_blank">#117 – Update README "Features" section</a></li>
+    <li><a href="https://github.com/kworkflow/patch-hub/issues/93" target="_blank">#93 – Update README demo GIF</a></li>
+  </ul>
+
+  <h3>Análise e adição de comentários em código</h3>
+  <ul>
+    <li><a href="https://github.com/kworkflow/patch-hub/issues/8" target="_blank">#8 – Add code documentation</a></li>
+  </ul>
+
+  <h3>Melhoria da cobertura de testes e QA</h3>
+  <ul>
+    <li><a href="https://github.com/kworkflow/patch-hub/issues/140" target="_blank">#140 – Improve Test Coverage and Quality Assurance</a></li>
+  </ul>
+  <p>Atualmente o projeto possui apenas cerca de 15% de cobertura de testes. A expansão dessa cobertura é essencial para garantir confiabilidade, segurança do código e estabilidade contínua do projeto.</p>
+
+  <h2>Planejamento Semanal</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Semana</th>
+        <th>Atividade / Issues</th>
+        <th>Horas</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1 (15/09 -- 21/09)</td>
+        <td>Estudo do projeto, familiarização com Rust, análise da arquitetura e contribuições anteriores.</td>
+        <td>10</td>
+      </tr>
+      <tr>
+        <td>2 (22/09 -- 28/09)</td>
+        <td>Implementação de documentação: <a href="https://github.com/kworkflow/patch-hub/issues/151">issue #151</a> e início da <a href="https://github.com/kworkflow/patch-hub/issues/136">issue #136</a>.</td>
+        <td>7</td>
+      </tr>
+      <tr>
+        <td>3 (29/09 -- 05/10)</td>
+        <td>Continuação da documentação: conclusão da <a href="https://github.com/kworkflow/patch-hub/issues/136">issue #136</a> e início da <a href="https://github.com/kworkflow/patch-hub/issues/133">issue #133</a>.</td>
+        <td>7</td>
+      </tr>
+      <tr>
+        <td>4 (06/10 -- 12/10)</td>
+        <td>Finalização da <a href="https://github.com/kworkflow/patch-hub/issues/133">issue #133</a> e atualização do README: <a href="https://github.com/kworkflow/patch-hub/issues/117">issue #117</a> e <a href="https://github.com/kworkflow/patch-hub/issues/93">issue #93</a>.</td>
+        <td>6</td>
+      </tr>
+      <tr>
+        <td>5 (13/10 -- 19/10)</td>
+        <td>Adição de comentários em código (<a href="https://github.com/kworkflow/patch-hub/issues/8">issue #8</a>); análise do código para documentação interna.</td>
+        <td>8</td>
+      </tr>
+      <tr>
+        <td>6 (20/10 -- 26/10)</td>
+        <td>Continuação da adição de comentários e revisão do código.</td>
+        <td>8</td>
+      </tr>
+      <tr>
+        <td>7 (27/10 -- 02/11)</td>
+        <td>Conclusão dos comentários em código e revisão final das melhorias aplicadas.</td>
+        <td>10</td>
+      </tr>
+      <tr>
+        <td>8 (03/11 -- 09/11)</td>
+        <td>Início da adição de testes unitários (<a href="https://github.com/kworkflow/patch-hub/issues/140">issue #140</a>); implementação inicial e verificação de funcionalidades.</td>
+        <td>11</td>
+      </tr>
+      <tr>
+        <td>9 (10/11 -- 16/11)</td>
+        <td>Continuação da adição de testes unitários, incluindo casos complexos e testes de integração parcial.</td>
+        <td>11</td>
+      </tr>
+      <tr>
+        <td>10 (17/11 -- 23/11)</td>
+        <td>Expansão da cobertura de testes, refinamento de casos e correções de falhas detectadas.</td>
+        <td>11</td>
+      </tr>
+      <tr>
+        <td>11 (24/11 -- 30/11)</td>
+        <td>Finalização da adição de testes, revisão geral do código, documentação final e preparação para entrega.</td>
+        <td>11</td>
+      </tr>
+    </tbody>
+  </table>
+  <p><em>OBS: Considerando o contexto de um software livre, existe a eventual possibilidade de que as issues mencionadas venham a ser reavaliadas dadas as suas conclusões por outros contribuíntes.</em></p>
+
+  <h2>Conclusão</h2>
+  <p>O trabalho tem como objetivo consolidar o <em>patch-hub</em> como software livre através da melhoria e aumento da documentação, padronizando processos e expandindo a cobertura de testes. Isso contribui para a atratividade do projeto, facilitando futuras colaborações e a qualidade do software como um todo.</p>
+</body>
+</html>
