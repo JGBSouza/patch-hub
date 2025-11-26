@@ -4,6 +4,10 @@ use crate::lore::{
     lore_api_client::AvailableListsRequest, lore_session, mailing_list::MailingList,
 };
 
+/// Handles the screen where you pick a mailing list.
+///
+/// It keeps track of all available lists, what you have typed in the search bar,
+/// and which list is currently highlighted.
 pub struct MailingListSelection {
     pub mailing_lists: Vec<MailingList>,
     pub target_list: String,
@@ -14,6 +18,9 @@ pub struct MailingListSelection {
 }
 
 impl MailingListSelection {
+    /// Gets the latest list of mailing lists from the internet.
+    ///
+    /// It updates the internal list and saves it to a file so it can be used later.
     pub fn refresh_available_mailing_lists(&mut self) -> color_eyre::Result<()> {
         match lore_session::fetch_available_lists(&*self.lore_api_client) {
             Ok(available_mailing_lists) => {
@@ -31,6 +38,9 @@ impl MailingListSelection {
         Ok(())
     }
 
+    /// Deletes the last character from your search.
+    ///
+    /// Useful when you press Backspace. It updates the list of visible items immediately.
     pub fn remove_last_target_list_char(&mut self) {
         if !self.target_list.is_empty() {
             self.target_list.pop();
@@ -38,16 +48,24 @@ impl MailingListSelection {
         }
     }
 
+    /// Adds a letter to your search.
+    ///
+    /// Useful when typing the name of a list. It updates the list of visible items immediately.
     pub fn push_char_to_target_list(&mut self, ch: char) {
         self.target_list.push(ch);
         self.process_possible_mailing_lists();
     }
 
+    /// Erases everything in the search bar.
     pub fn clear_target_list(&mut self) {
         self.target_list.clear();
         self.process_possible_mailing_lists();
     }
 
+    /// Filters the list based on what you typed.
+    ///
+    /// It looks at all lists and keeps only the ones starting with your search text.
+    /// It also resets the selection to the top of the new list.
     fn process_possible_mailing_lists(&mut self) {
         let possible_mailing_lists = self
             .mailing_lists
@@ -60,16 +78,21 @@ impl MailingListSelection {
         self.highlighted_list_index = 0;
     }
 
+    /// Selects the next list item (moves highlight down).
     pub fn highlight_below_list(&mut self) {
         if self.highlighted_list_index + 1 < self.possible_mailing_lists.len() {
             self.highlighted_list_index += 1;
         }
     }
 
+    /// Selects the previous list item (moves highlight up).
     pub fn highlight_above_list(&mut self) {
         self.highlighted_list_index = self.highlighted_list_index.saturating_sub(1);
     }
 
+    /// Checks if the currently selected list is valid.
+    ///
+    /// Returns true if the selection is within the bounds of the list.
     pub fn has_valid_target_list(&self) -> bool {
         let list_length = self.possible_mailing_lists.len(); // Possible mailing list length
         let list_index = self.highlighted_list_index; // Index of the selected mailing list
