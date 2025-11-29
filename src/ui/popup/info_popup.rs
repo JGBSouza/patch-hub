@@ -101,3 +101,111 @@ impl PopUp for InfoPopUp {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
+
+    fn create_key_event(code: KeyCode) -> KeyEvent {
+        KeyEvent {
+            code,
+            modifiers: KeyModifiers::empty(),
+            kind: KeyEventKind::Press,
+            state: KeyEventState::NONE,
+        }
+    }
+
+    #[test]
+    fn test_dimensions_from_constructor() {
+        let popup = InfoPopUp::generate_info_popup("Title", "Info");
+        assert_eq!(popup.dimensions(), (30, 50));
+    }
+
+    #[test]
+    fn test_offset_calculation_logic() {
+        let info = "Line 1\nLine 2 is longer\nLine 3";
+
+        let mut lines = 0;
+        let mut columns = 0;
+        for line in info.lines() {
+            lines += 1;
+            let line_len = line.len() as u16;
+            if line_len > columns {
+                columns = line_len;
+            }
+        }
+
+        assert_eq!(lines, 3);
+        assert_eq!(columns, 16);
+    }
+
+    #[test]
+    fn test_handle_vertical_scrolling() {
+        let mut popup = InfoPopUp {
+            title: "Test".to_string(),
+            info: "Line 1\nLine 2\nLine 3".to_string(),
+            offset: (0, 0),
+            max_offset: (2, 10),
+            dimensions: (30, 50),
+        };
+
+        popup.handle(create_key_event(KeyCode::Char('j'))).unwrap();
+        assert_eq!(popup.offset.0, 1);
+
+        popup.handle(create_key_event(KeyCode::Down)).unwrap();
+        assert_eq!(popup.offset.0, 2);
+
+        popup.handle(create_key_event(KeyCode::Down)).unwrap();
+        assert_eq!(popup.offset.0, 2);
+
+        popup.handle(create_key_event(KeyCode::Char('k'))).unwrap();
+        assert_eq!(popup.offset.0, 1);
+
+        popup.handle(create_key_event(KeyCode::Up)).unwrap();
+        assert_eq!(popup.offset.0, 0);
+
+        popup.handle(create_key_event(KeyCode::Up)).unwrap();
+        assert_eq!(popup.offset.0, 0);
+    }
+
+    #[test]
+    fn test_handle_horizontal_scrolling() {
+        let mut popup = InfoPopUp {
+            title: "Test".to_string(),
+            info: "Long Line".to_string(),
+            offset: (0, 0),
+            max_offset: (5, 5),
+            dimensions: (30, 50),
+        };
+
+        popup.handle(create_key_event(KeyCode::Char('l'))).unwrap();
+        assert_eq!(popup.offset.1, 1);
+
+        popup.handle(create_key_event(KeyCode::Right)).unwrap();
+        assert_eq!(popup.offset.1, 2);
+
+        popup.handle(create_key_event(KeyCode::Char('h'))).unwrap();
+        assert_eq!(popup.offset.1, 1);
+
+        popup.handle(create_key_event(KeyCode::Left)).unwrap();
+        assert_eq!(popup.offset.1, 0);
+    }
+
+    #[test]
+    fn test_handle_ignores_unrelated_keys() {
+        let mut popup = InfoPopUp {
+            title: "Test".to_string(),
+            info: "Info".to_string(),
+            offset: (0, 0),
+            max_offset: (10, 10),
+            dimensions: (30, 50),
+        };
+
+        popup.handle(create_key_event(KeyCode::Char('z'))).unwrap();
+        assert_eq!(popup.offset, (0, 0));
+
+        popup.handle(create_key_event(KeyCode::Enter)).unwrap();
+        assert_eq!(popup.offset, (0, 0));
+    }
+}
