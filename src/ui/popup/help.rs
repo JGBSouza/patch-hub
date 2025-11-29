@@ -197,3 +197,126 @@ impl Display for HelpPopUp {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ratatui::crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyEventState, KeyModifiers};
+
+    fn create_key_event(code: KeyCode) -> KeyEvent {
+        KeyEvent {
+            code,
+            modifiers: KeyModifiers::empty(),
+            kind: KeyEventKind::Press,
+            state: KeyEventState::NONE,
+        }
+    }
+
+    #[test]
+    fn test_builder_basic_fields() {
+        let popup = HelpPopUpBuilder::new()
+            .title("Test Title")
+            .description("Test Description")
+            .build();
+
+        assert_eq!(popup.title, Some("Test Title".to_string()));
+        assert_eq!(popup.description, Some("Test Description".to_string()));
+        assert_eq!(popup.keybinds, "");
+    }
+
+    #[test]
+    fn test_builder_defaults() {
+        let popup = HelpPopUpBuilder::new().build();
+
+        assert_eq!(popup.title, None);
+        assert_eq!(popup.description, None);
+        assert_eq!(popup.keybinds, "");
+    }
+
+    #[test]
+    fn test_keybind_formatting_and_alignment() {
+        let popup = HelpPopUpBuilder::new()
+            .keybind("q", "Quit")
+            .keybind("Enter", "Select")
+            .build();
+
+        let expected = "    q: Quit\nEnter: Select\n";
+
+        assert_eq!(popup.keybinds, expected);
+
+        assert_eq!(popup.lines, 2);
+        assert_eq!(popup.columns, 13);
+    }
+
+    #[test]
+    fn test_display_trait() {
+        let popup_with_title = HelpPopUpBuilder::new().title("My Screen").build();
+        assert_eq!(format!("{}", popup_with_title), "My Screen");
+
+        let popup_no_title = HelpPopUpBuilder::new().build();
+        assert_eq!(format!("{}", popup_no_title), "Help");
+    }
+
+    #[test]
+    fn test_handle_scroll_vertical() {
+        let mut popup = HelpPopUpBuilder::new()
+            .keybind("1", "A")
+            .keybind("2", "B")
+            .keybind("3", "C")
+            .build();
+
+        assert_eq!(popup.offset, (0, 0));
+
+        popup.handle(create_key_event(KeyCode::Char('k'))).unwrap();
+        assert_eq!(popup.offset, (0, 0));
+
+        popup.handle(create_key_event(KeyCode::Char('j'))).unwrap();
+        assert_eq!(popup.offset, (1, 0));
+
+        popup.handle(create_key_event(KeyCode::Down)).unwrap();
+        assert_eq!(popup.offset, (2, 0));
+
+        popup.handle(create_key_event(KeyCode::Up)).unwrap();
+        assert_eq!(popup.offset, (1, 0));
+    }
+
+    #[test]
+    fn test_handle_scroll_bounds() {
+        let mut popup = HelpPopUpBuilder::new().keybind("1", "One").build();
+
+        popup.handle(create_key_event(KeyCode::Down)).unwrap();
+        assert_eq!(popup.offset.0, 1);
+
+        popup.handle(create_key_event(KeyCode::Down)).unwrap();
+        assert_eq!(popup.offset.0, 1);
+    }
+
+    #[test]
+    fn test_handle_scroll_horizontal() {
+        let mut popup = HelpPopUpBuilder::new().keybind("Key", "Value").build();
+
+        popup.handle(create_key_event(KeyCode::Char('l'))).unwrap();
+        assert_eq!(popup.offset, (0, 1));
+
+        popup.handle(create_key_event(KeyCode::Right)).unwrap();
+        assert_eq!(popup.offset, (0, 2));
+
+        popup.handle(create_key_event(KeyCode::Char('h'))).unwrap();
+        assert_eq!(popup.offset, (0, 1));
+
+        popup.handle(create_key_event(KeyCode::Left)).unwrap();
+        assert_eq!(popup.offset, (0, 0));
+
+        popup.handle(create_key_event(KeyCode::Left)).unwrap();
+        assert_eq!(popup.offset, (0, 0));
+    }
+
+    #[test]
+    fn test_handle_ignores_other_keys() {
+        let mut popup = HelpPopUpBuilder::new().build();
+
+        let res = popup.handle(create_key_event(KeyCode::Char('a')));
+        assert!(res.is_ok());
+        assert_eq!(popup.offset, (0, 0));
+    }
+}
