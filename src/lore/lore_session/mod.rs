@@ -32,6 +32,10 @@ pub enum B4Result {
     PatchNotFound(String),
 }
 
+/// Manages the browsing session for a specific mailing list.
+///
+/// It handles pagination, fetching data from the API, and filtering patches
+/// to decide which ones should be displayed in the main list (representative patches).
 #[derive(Getters)]
 pub struct LoreSession {
     representative_patches_ids: Vec<String>,
@@ -45,6 +49,7 @@ pub struct LoreSession {
     min_index: usize,
 }
 
+/// Errors that can occur during a session, mostly wrapping client errors.
 #[derive(Error, Debug)]
 pub enum LoreSessionError {
     #[error(transparent)]
@@ -52,6 +57,7 @@ pub enum LoreSessionError {
 }
 
 impl LoreSession {
+    /// Creates a new session for a target mailing list.
     pub fn new(target_list: String) -> LoreSession {
         LoreSession {
             target_list,
@@ -62,10 +68,15 @@ impl LoreSession {
         }
     }
 
+    /// Retrieves a patch by its Message-ID from the internal cache.
     pub fn get_processed_patch(&self, message_id: &str) -> Option<&Patch> {
         self.processed_patches_map.get(message_id)
     }
 
+    /// Fetches enough data from the API to fill the list with `n` representative patches.
+    ///
+    /// It keeps requesting pages from the Lore API until it finds enough series cover letters
+    /// or standalone patches to satisfy the request.
     pub fn process_n_representative_patches(
         &mut self,
         lore_api_client: &dyn PatchFeedRequest,
@@ -86,6 +97,7 @@ impl LoreSession {
         Ok(())
     }
 
+    /// Parses the raw feed and stores new patches in the internal map.
     fn process_patches(&mut self, patch_feed: PatchFeed) -> Vec<String> {
         let mut processed_patches_ids: Vec<String> = Vec::new();
 
@@ -105,6 +117,10 @@ impl LoreSession {
         processed_patches_ids
     }
 
+    /// Identifies which patches should appear in the main list.
+    ///
+    /// It filters out replies and patches that are part of a series but not the cover letter (0/N),
+    /// storing only the "head" of the series or standalone patches.
     fn update_representative_patches(&mut self, processed_patches_ids: Vec<String>) {
         let mut patch: &Patch;
         let mut patch_number_in_series: usize;
@@ -136,6 +152,7 @@ impl LoreSession {
         }
     }
 
+    /// Returns a slice of patches for the UI pagination.
     pub fn get_patch_feed_page(&self, page_size: usize, page_number: usize) -> Option<Vec<&Patch>> {
         let mut patch_feed_page: Vec<&Patch> = Vec::new();
         let representative_patches_ids_max_index: usize = self.representative_patches_ids.len() - 1;
@@ -161,6 +178,9 @@ impl LoreSession {
     }
 }
 
+/// Uses the `b4` tool to download a full patch series.
+///
+/// It executes `b4 am` to save the series as a `.mbx` file in the output directory.
 pub fn download_patchset(output_dir: &str, patch: &Patch) -> B4Result {
     let message_id: &str = &patch.message_id().href;
     let mbox_name: String = extract_mbox_name_from_message_id(message_id);
@@ -204,6 +224,7 @@ pub fn download_patchset(output_dir: &str, patch: &Patch) -> B4Result {
     }
 }
 
+/// Helper to create a valid filename from a Message-ID URL.
 fn extract_mbox_name_from_message_id(message_id: &str) -> String {
     let mut mbox_name: String = message_id
         .replace(r#"http://lore.kernel.org/"#, "")
@@ -218,6 +239,9 @@ fn extract_mbox_name_from_message_id(message_id: &str) -> String {
     mbox_name
 }
 
+/// Reads a local .mbx file and splits it into individual patch strings.
+///
+/// It also handles extracting the cover letter if a separate `.cover` file exists.
 pub fn split_patchset(patchset_path_str: &str) -> Result<Vec<String>, String> {
     let mut patches: Vec<String> = Vec::new();
     let patchset_path: &Path = Path::new(patchset_path_str);
@@ -254,6 +278,7 @@ pub fn split_cover(patch: &str) -> (&str, &str) {
     (cover, diff)
 }
 
+/// Helper that reads an mbox file line-by-line to separate messages.
 fn extract_patches(mbox_path: &Path, patches: &mut Vec<String>) {
     let mut current_patch: String = String::new();
     let mut is_reading_patch: bool = false;
@@ -297,6 +322,7 @@ fn extract_patches(mbox_path: &Path, patches: &mut Vec<String>) {
     }
 }
 
+/// Saves the list of bookmarked patches to a JSON file.
 pub fn save_bookmarked_patchsets(
     bookmarked_patchsets: &Vec<Patch>,
     filepath: &str,
@@ -314,12 +340,14 @@ pub fn save_bookmarked_patchsets(
     Ok(())
 }
 
+/// Loads the list of bookmarked patches from a JSON file.
 pub fn load_bookmarked_patchsets(filepath: &str) -> io::Result<Vec<Patch>> {
     let bookmarked_patchsets_file = File::open(filepath)?;
     let bookmarked_patchesets = serde_json::from_reader(bookmarked_patchsets_file)?;
     Ok(bookmarked_patchesets)
 }
 
+/// Scrapes the main Lore index page to find all available mailing lists.
 pub fn fetch_available_lists(
     lore_api_client: &dyn AvailableListsRequest,
 ) -> Result<Vec<MailingList>, LoreSessionError> {
@@ -345,6 +373,7 @@ pub fn fetch_available_lists(
     Ok(available_lists)
 }
 
+/// Helper that extracts list names and descriptions from the Lore HTML response.
 fn process_available_lists(available_lists_str: String) -> Vec<MailingList> {
     static RE_PRE_BLOCK: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r#"(?s)<pre>(.*?)</pre>"#).unwrap());
@@ -384,6 +413,7 @@ fn process_available_lists(available_lists_str: String) -> Vec<MailingList> {
     available_lists
 }
 
+/// Saves the list of available mailing lists to a JSON file.
 pub fn save_available_lists(available_lists: &Vec<MailingList>, filepath: &str) -> io::Result<()> {
     if let Some(parent) = Path::new(filepath).parent() {
         fs::create_dir_all(parent)?;
@@ -398,12 +428,17 @@ pub fn save_available_lists(available_lists: &Vec<MailingList>, filepath: &str) 
     Ok(())
 }
 
+/// Loads the list of available mailing lists from a JSON file.
 pub fn load_available_lists(filepath: &str) -> io::Result<Vec<MailingList>> {
     let available_lists_file = File::open(filepath)?;
     let available_lists = serde_json::from_reader(available_lists_file)?;
     Ok(available_lists)
 }
 
+/// Generates the `git send-email` commands needed to reply with a Reviewed-by tag.
+///
+/// It fetches the patch content, creates a reply template, adds the tag, and
+/// constructs the command using the configured Git options.
 pub fn prepare_reply_patchset_with_reviewed_by<T>(
     lore_api_client: &T,
     tmp_dir: &Path,
@@ -449,6 +484,7 @@ where
     Ok(git_reply_commands)
 }
 
+/// Creates a standard email reply body (quoting the original message) from the patch content.
 fn generate_patch_reply_template(patch_contents: &str) -> String {
     let mut reply_template = String::new();
     let mut patch_lines_iterator = patch_contents.lines();
@@ -482,6 +518,7 @@ fn generate_patch_reply_template(patch_contents: &str) -> String {
     reply_template
 }
 
+/// Parses the suggested `git send-email` command from the Lore HTML interface.
 fn extract_git_reply_command(patch_html: &str, git_send_email_options: &str) -> Command {
     let mut git_reply_command = Command::new("git");
     git_reply_command.arg("send-email");
@@ -510,6 +547,7 @@ fn extract_git_reply_command(patch_html: &str, git_send_email_options: &str) -> 
     git_reply_command
 }
 
+/// Reads the user.name and user.email from the local git config.
 pub fn get_git_signature(git_repo_path: &str) -> (String, String) {
     let mut git_user_name_command = Command::new("git");
     if !git_repo_path.is_empty() {
@@ -540,6 +578,7 @@ pub fn get_git_signature(git_repo_path: &str) -> (String, String) {
     (git_user_name.to_owned(), git_user_email.to_owned())
 }
 
+/// Saves the status of reviewed patches (e.g. which patches in a series were reviewed) to a file.
 pub fn save_reviewed_patchsets(
     reviewed_patchsets: &HashMap<String, HashSet<usize>>,
     filepath: &str,
@@ -557,6 +596,7 @@ pub fn save_reviewed_patchsets(
     Ok(())
 }
 
+/// Loads the status of reviewed patches from a file.
 pub fn load_reviewed_patchsets(filepath: &str) -> io::Result<HashMap<String, HashSet<usize>>> {
     let reviewed_patchsets_file = File::open(filepath)?;
     let reviewed_patchsets = serde_json::from_reader(reviewed_patchsets_file)?;
