@@ -1,3 +1,7 @@
+/// This module is responsible for rendering the "Bookmarked Patchsets" screen.
+///
+/// This module displays a list of locally saved patches that the user has bookmarked
+/// This screen allows users to navigate through saved patches and select them for details.
 use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style},
@@ -8,6 +12,7 @@ use ratatui::{
 
 use crate::app::screens::bookmarked::BookmarkedPatchsets;
 
+/// Renders the main list of bookmarked patchsets with formatting and selection highlighting.
 pub fn render_main(f: &mut Frame, bookmarked_patchsets: &BookmarkedPatchsets, chunk: Rect) {
     let patchset_index = bookmarked_patchsets.patchset_index;
     let mut list_items = Vec::<ListItem>::new();
@@ -55,6 +60,7 @@ pub fn render_main(f: &mut Frame, bookmarked_patchsets: &BookmarkedPatchsets, ch
     f.render_stateful_widget(list, chunk, &mut list_state);
 }
 
+/// Returns the styled text to be displayed in the footer for this screen.
 pub fn mode_footer_text() -> Vec<Span<'static>> {
     vec![Span::styled(
         "Bookmarked Patchsets",
@@ -62,6 +68,7 @@ pub fn mode_footer_text() -> Vec<Span<'static>> {
     )]
 }
 
+/// Returns the styled help text showing available keybindings.
 pub fn keys_hint() -> Span<'static> {
     Span::styled(
         "(ESC / q) to return | (ENTER) to select | (?) help",
