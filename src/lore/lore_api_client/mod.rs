@@ -11,6 +11,7 @@ mod tests;
 const LORE_DOMAIN: &str = r"https://lore.kernel.org";
 const BASE_QUERY_FOR_FEED_REQUEST: &str = r"?x=A&q=((s:patch+OR+s:rfc)+AND+NOT+s:re:)";
 
+/// Errors that can occur when making requests to the Lore API.
 #[derive(Error, Debug)]
 pub enum ClientError {
     #[error(transparent)]
@@ -20,6 +21,7 @@ pub enum ClientError {
     EndOfFeed,
 }
 
+/// A client for interacting with the Lore mailing list API.
 #[derive(Clone)]
 pub struct BlockingLoreAPIClient {
     pub lore_domain: String,
@@ -48,6 +50,7 @@ impl BlockingLoreAPIClient {
     }
 }
 
+/// Trait for requesting a feed of patches from a specific mailing list.
 #[automock]
 pub trait PatchFeedRequest {
     fn request_patch_feed(
@@ -83,6 +86,7 @@ impl PatchFeedRequest for BlockingLoreAPIClient {
     }
 }
 
+/// Trait for requesting the list of available mailing lists.
 #[automock]
 pub trait AvailableListsRequest {
     fn request_available_lists(&self, min_index: usize) -> Result<String, ClientError>;
@@ -101,6 +105,7 @@ impl AvailableListsRequest for BlockingLoreAPIClient {
     }
 }
 
+/// Trait for requesting the HTML content of a specific patch.
 #[automock]
 pub trait PatchHTMLRequest {
     fn request_patch_html(
